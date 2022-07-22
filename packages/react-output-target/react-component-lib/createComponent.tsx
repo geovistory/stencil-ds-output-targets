@@ -44,24 +44,29 @@ export const createReactComponent = <
   const displayName = dashToPascalCase(tagName);
   const ReactComponent = (props: StencilReactInternalProps<ElementType>) => {
     let componentEl!: ElementType;
-
+    let componentElLoaded: (value: unknown) => void;
+    const waitForComponentEl = new Promise((resolve) => {
+      componentElLoaded = resolve;
+    });
     const setComponentElRef = (element: ElementType) => {
       componentEl = element;
+      componentElLoaded(0);
     };
     useEffect(() => {
       attachProps(componentEl, props, props);
     });
 
     useSSE(async () => {
-
       // we don't want to fetch here, if we are in a client
-      if(typeof window) return;
+      if (typeof window !== 'undefined') return;
+
+      await waitForComponentEl;
 
       await customElements.whenDefined(tagName);
       if (componentEl?.fetchData) {
         const data = await componentEl.fetchData();
 
-        attachProps(componentEl, { ...props, data }, props);;
+        attachProps(componentEl, { ...props, data }, props);
         return data;
       }
       return;
