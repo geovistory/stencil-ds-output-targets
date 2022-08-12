@@ -94,10 +94,19 @@ import { createReactComponent } from './react-component-lib';\n`;
    * wrapper names. For example, IonButton would be imported as IonButtonCmp to not conflict with the IonButton React
    * Component that takes in the Web Component as a parameter.
    */
+   if (!outputTarget.includeImportCustomElements) {
+    if (outputTarget.includePolyfills && outputTarget.includeDefineCustomElements) {
+      sourceImports = `import { ${APPLY_POLYFILLS}, ${REGISTER_CUSTOM_ELEMENTS} } from '${pathToCorePackageLoader}';\n`;
+      registerCustomElements = `${APPLY_POLYFILLS}().then(() => ${REGISTER_CUSTOM_ELEMENTS}());`;
+    } else if (!outputTarget.includePolyfills && outputTarget.includeDefineCustomElements) {
+      sourceImports = `import { ${REGISTER_CUSTOM_ELEMENTS} } from '${pathToCorePackageLoader}';\n`;
+      registerCustomElements = `${REGISTER_CUSTOM_ELEMENTS}();`;
+    }
+  }
   if ((outputTarget.includeImportCustomElements || outputTarget.enableSSR) && outputTarget.componentCorePackage !== undefined) {
     if (outputTarget.enableSSR) {
       const hydratePath = getPathToHydrateScript(outputTarget)
-      sourceImports = `import { renderToString } from '${hydratePath}';\n\n`;
+      sourceImports += `import { renderToString } from '${hydratePath}';\n\n`;
     }
 
     const cmpImports = components.map(component => {
@@ -113,13 +122,8 @@ import { createReactComponent } from './react-component-lib';\n`;
     });
     sourceImports += cmpImports.join('\n');
 
-  } else if (outputTarget.includePolyfills && outputTarget.includeDefineCustomElements) {
-    sourceImports = `import { ${APPLY_POLYFILLS}, ${REGISTER_CUSTOM_ELEMENTS} } from '${pathToCorePackageLoader}';\n`;
-    registerCustomElements = `${APPLY_POLYFILLS}().then(() => ${REGISTER_CUSTOM_ELEMENTS}());`;
-  } else if (!outputTarget.includePolyfills && outputTarget.includeDefineCustomElements) {
-    sourceImports = `import { ${REGISTER_CUSTOM_ELEMENTS} } from '${pathToCorePackageLoader}';\n`;
-    registerCustomElements = `${REGISTER_CUSTOM_ELEMENTS}();`;
   }
+
 
   const final: ReadonlyArray<string> = [
     imports,
