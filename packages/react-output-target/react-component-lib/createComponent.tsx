@@ -97,8 +97,8 @@ export const createReactComponent = <
       let serverFetched: any;
 
       // instantiate new component
-      componentClass.__attachShadow = () => {}; // shim __attachShadow()
-      componentClass.attachShadow = () => {}; // shim attachShadow()
+      componentClass.prototype.__attachShadow = () => {}; // shim __attachShadow()
+      componentClass.prototype.attachShadow = () => {}; // shim attachShadow()
       const component = new componentClass();
 
       // assign properties to the component
