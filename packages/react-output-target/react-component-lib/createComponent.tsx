@@ -92,7 +92,7 @@ export const createReactComponent = <
      */
     const [sse, error] = useSSE(async () => {
       // stop, if we are in a browser
-      if (!isServer || !componentClass || !stencilRenderToString) return;
+      if (!isServer || !componentClass || !stencilRenderToString) return true;
 
       let data: any;
 
