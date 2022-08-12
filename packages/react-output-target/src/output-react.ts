@@ -94,16 +94,24 @@ import { createReactComponent } from './react-component-lib';\n`;
    * wrapper names. For example, IonButton would be imported as IonButtonCmp to not conflict with the IonButton React
    * Component that takes in the Web Component as a parameter.
    */
-  if (outputTarget.includeImportCustomElements && outputTarget.componentCorePackage !== undefined) {
+  if ((outputTarget.includeImportCustomElements || outputTarget.enableSSR) && outputTarget.componentCorePackage !== undefined) {
+    if (outputTarget.enableSSR) {
+      const hydratePath = getPathToHydrateScript(outputTarget)
+      sourceImports = `import { renderToString } from '${hydratePath}';`;
+    }
+
     const cmpImports = components.map(component => {
       const pascalImport = dashToPascalCase(component.tagName);
 
-      return `import { defineCustomElement as define${pascalImport} } from '${normalizePath(outputTarget.componentCorePackage!)}/${outputTarget.customElementsDir ||
-        'components'
-      }/${component.tagName}.js';`;
-    });
+      const imports = []
+      if (outputTarget.includeImportCustomElements) imports.push(`defineCustomElement as define${pascalImport}`)
+      if (outputTarget.enableSSR) imports.push(`${pascalImport} as ${pascalImport}Cmp`)
 
-    sourceImports = cmpImports.join('\n');
+      return `import { ${imports.join(', ')} } from '${normalizePath(outputTarget.componentCorePackage!)}/${outputTarget.customElementsDir ||
+        'components'
+        }/${component.tagName}.js';`;
+    });
+    sourceImports += cmpImports.join('\n');
 
   } else if (outputTarget.includePolyfills && outputTarget.includeDefineCustomElements) {
     sourceImports = `import { ${APPLY_POLYFILLS}, ${REGISTER_CUSTOM_ELEMENTS} } from '${pathToCorePackageLoader}';\n`;
@@ -118,7 +126,10 @@ import { createReactComponent } from './react-component-lib';\n`;
     typeImports,
     sourceImports,
     registerCustomElements,
-    components.map(cmpMeta => createComponentDefinition(cmpMeta, outputTarget.includeImportCustomElements)).join('\n'),
+    components.map(cmpMeta => createComponentDefinition(
+      cmpMeta,
+      outputTarget.includeImportCustomElements,
+      outputTarget.enableSSR)).join('\n'),
   ];
 
   return final.join('\n') + '\n';
@@ -129,14 +140,18 @@ import { createReactComponent } from './react-component-lib';\n`;
  * @param cmpMeta Meta data for a single Web Component
  * @param includeCustomElement If `true`, the Web Component instance will be passed in to createReactComponent to be
  * registered with the Custom Elements Registry.
+ * @param enableSSR If `true`, the Web Component Class will be passed in to createReactComponent.
  * @returns An array where each entry is a string version of the React component definition.
  */
-export function createComponentDefinition(cmpMeta: ComponentCompilerMeta, includeCustomElement: boolean = false): ReadonlyArray<string> {
+export function createComponentDefinition(cmpMeta: ComponentCompilerMeta, includeCustomElement: boolean = false, enableSSR: boolean = false): ReadonlyArray<string> {
   const tagNameAsPascal = dashToPascalCase(cmpMeta.tagName);
   let template = `export const ${tagNameAsPascal} = /*@__PURE__*/createReactComponent<${IMPORT_TYPES}.${tagNameAsPascal}, HTML${tagNameAsPascal}Element>('${cmpMeta.tagName}'`;
 
   if (includeCustomElement) {
     template += `, undefined, undefined, define${tagNameAsPascal}`;
+  }
+  if (enableSSR) {
+    template += `, ${tagNameAsPascal}Cmp, renderToString`;
   }
 
   template += `);`;
@@ -197,8 +212,22 @@ export function getPathToCorePackageLoader(config: Config, outputTarget: OutputT
   return normalizePath(path.join(basePkg, loaderDir));
 }
 
+/**
+ * Derive the path to the hydrate script
+ * @param outputTarget the output target used for generating the Stencil-React bindings
+ * @returns the derived hydrate script path
+ */
+export function getPathToHydrateScript(outputTarget: OutputTargetReact): string {
+  const basePkg = outputTarget.componentCorePackage || '';
+
+  const hydrateDir = outputTarget.hydrateDir || DEFAULT_HYDRATE_DIR;
+  return normalizePath(path.join(basePkg, hydrateDir));
+}
+
 export const GENERATED_DTS = 'components.d.ts';
 const IMPORT_TYPES = 'JSX';
 const REGISTER_CUSTOM_ELEMENTS = 'defineCustomElements';
 const APPLY_POLYFILLS = 'applyPolyfills';
 const DEFAULT_LOADER_DIR = '/dist/loader';
+const DEFAULT_HYDRATE_DIR = '/hydrate';
+

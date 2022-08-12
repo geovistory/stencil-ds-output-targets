@@ -13,6 +13,17 @@ describe('createComponentDefinition', () => {
     expect(output[0]).toEqual(`export const MyComponent = /*@__PURE__*/createReactComponent<JSX.MyComponent, HTMLMyComponentElement>('my-component', undefined, undefined, defineMyComponent);`);
   });
 
+  it('should create a React component with custom element support and srr support', () => {
+    const output = createComponentDefinition({
+      properties: [],
+      tagName: 'my-component',
+      methods: [],
+      events: [],
+    }, true, true);
+    expect(output[0]).toEqual(`export const MyComponent = /*@__PURE__*/createReactComponent<JSX.MyComponent, HTMLMyComponentElement>('my-component', undefined, undefined, defineMyComponent, MyComponentCmp, renderToString);`);
+  });
+
+
   it('should create a React component without custom element support', () => {
     const output = createComponentDefinition({
       properties: [],
@@ -152,6 +163,31 @@ import type { JSX } from 'component-library/custom-dir/hello';
 `,
     );
   });
+
+  it('should enableSRR if true in the outputTarget', () => {
+    const outputTarget: OutputTargetReact = {
+      componentCorePackage: 'component-library',
+      proxiesFile: '../component-library-react/src/proxies.ts',
+      includeImportCustomElements: true,
+      enableSSR: true
+    };
+
+    const finalText = generateProxies(config, components, pkgData, outputTarget, rootDir);
+    expect(finalText).toEqual(
+      `/* eslint-disable */
+/* tslint:disable */
+/* auto-generated react proxies */
+import { createReactComponent } from './react-component-lib';
+
+import type { JSX } from 'component-library/components';
+
+import { renderToString } from 'component-library/hydrate';
+
+
+`,
+    );
+  });
+
 });
 
 describe('getPathToCorePackageLoader', () => {
