@@ -124,8 +124,9 @@ export const createReactComponent = <
       style,
     };
 
+
     useEffect(() => {
-      attachProps(componentEl, newProps, props);
+      attachProps(componentEl, cPropsWithData, newProps); // TODO: newProps should be prevProps!
     });
 
     /**
