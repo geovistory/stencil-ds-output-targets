@@ -97,7 +97,7 @@ import { createReactComponent } from './react-component-lib';\n`;
   if ((outputTarget.includeImportCustomElements || outputTarget.enableSSR) && outputTarget.componentCorePackage !== undefined) {
     if (outputTarget.enableSSR) {
       const hydratePath = getPathToHydrateScript(outputTarget)
-      sourceImports = `import { renderToString } from '${hydratePath}';`;
+      sourceImports = `import { renderToString } from '${hydratePath}';\n\n`;
     }
 
     const cmpImports = components.map(component => {
