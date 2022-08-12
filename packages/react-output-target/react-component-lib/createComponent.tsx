@@ -121,7 +121,7 @@ export const createReactComponent = <
       return { data, html };
     });
 
-    console.warn(error)
+    if (error) console.warn(error);
 
     /**
      * We use createElement here instead of
