@@ -145,14 +145,24 @@ import { createReactComponent } from './react-component-lib';\n`;
  */
 export function createComponentDefinition(cmpMeta: ComponentCompilerMeta, includeCustomElement: boolean = false, enableSSR: boolean = false): ReadonlyArray<string> {
   const tagNameAsPascal = dashToPascalCase(cmpMeta.tagName);
-  let template = `export const ${tagNameAsPascal} = /*@__PURE__*/createReactComponent<${IMPORT_TYPES}.${tagNameAsPascal}, HTML${tagNameAsPascal}Element>('${cmpMeta.tagName}'`;
+  const args = [`'${cmpMeta.tagName}'`, 'undefined', 'undefined', 'undefined', 'undefined', 'undefined']
+
+  let template = `export const ${tagNameAsPascal} = /*@__PURE__*/createReactComponent<${IMPORT_TYPES}.${tagNameAsPascal}, HTML${tagNameAsPascal}Element>(`;
 
   if (includeCustomElement) {
-    template += `, undefined, undefined, define${tagNameAsPascal}`;
+    args[3] = `define${tagNameAsPascal}`
   }
+
   if (enableSSR) {
-    template += `, ${tagNameAsPascal}Cmp, renderToString`;
+    args[4] = `${tagNameAsPascal}Cmp`
+    args[5] = `renderToString`
   }
+
+  while (args[args.length - 1] === 'undefined') {
+    args.pop()
+  }
+
+  template += args.join(', ')
 
   template += `);`;
 
