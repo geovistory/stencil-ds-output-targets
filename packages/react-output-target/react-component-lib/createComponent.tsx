@@ -90,11 +90,11 @@ export const createReactComponent = <
     /**
      * Server Side Rendering
      */
-    const [sse, error] = useSSE(async () => {
+    const [data, error] = useSSE(async () => {
       // stop, if we are in a browser
       if (!isServer || !componentClass || !stencilRenderToString) return true;
 
-      let data: any;
+      let serverFetched: any;
 
       // instantiate new component
       componentClass.__attachShadow = () => {}; // shim __attachShadow()
@@ -106,7 +106,7 @@ export const createReactComponent = <
 
       // fetch data, if component has fetchData() function
       if (component?.fetchData) {
-        data = await component.fetchData();
+        serverFetched = await component.fetchData();
       }
 
       // render webcomponent html (using stencil hydrate)
@@ -116,10 +116,10 @@ export const createReactComponent = <
         newProps,
         children,
         stencilRenderToString,
-        data,
+        serverFetched,
       );
 
-      return { data, html };
+      return { serverFetched, html };
     });
 
     if (error) console.warn(error);
@@ -131,10 +131,10 @@ export const createReactComponent = <
      * React.createElement causes all elements to be rendered
      * as <tagname> instead of the actual Web Component.
      */
-    return sse?.html ? (
-      <div dangerouslySetInnerHTML={{ __html: sse?.html }}></div>
+    return data?.html ? (
+      <div dangerouslySetInnerHTML={{ __html: data?.html }}></div>
     ) : (
-      createElement(tagName, { ...newProps, data: sse?.data }, children)
+      createElement(tagName, { ...newProps, data: data }, children)
     );
   };
 
