@@ -57,36 +57,6 @@ export const createReactComponent = <
     const isServer = typeof window === 'undefined';
     const { children, forwardedRef, style, className, ref, ...cProps } = props;
 
-    let propsToPass = Object.keys(cProps).reduce((acc: any, name) => {
-      const value = (cProps as any)[name];
-
-      if (name.indexOf('on') === 0 && name[2] === name[2].toUpperCase()) {
-        const eventName = name.substring(2).toLowerCase();
-        if (typeof document !== 'undefined' && isCoveredByReact(eventName)) {
-          acc[name] = value;
-        }
-      } else {
-        // we should only render strings, booleans, and numbers as attrs in html.
-        // objects, functions, arrays etc get synced via properties on mount.
-        const type = typeof value;
-
-        if (type === 'string' || type === 'boolean' || type === 'number') {
-          acc[camelToDashCase(name)] = value;
-        }
-      }
-      return acc;
-    }, {});
-
-    if (manipulatePropsFunction) {
-      propsToPass = manipulatePropsFunction(props, propsToPass);
-    }
-
-    const newProps: NewProps<ElementType> = {
-      ...propsToPass,
-      ref: mergeRefs(forwardedRef, setComponentElRef),
-      style,
-    };
-
     /**
      * Server Side Rendering
      */
@@ -124,6 +94,38 @@ export const createReactComponent = <
 
     if (error) console.warn(error);
 
+    const cPropsWithData = { ...cProps, data: data };
+
+    let propsToPass = Object.keys(cPropsWithData).reduce((acc: any, name) => {
+      const value = (cPropsWithData as any)[name];
+
+      if (name.indexOf('on') === 0 && name[2] === name[2].toUpperCase()) {
+        const eventName = name.substring(2).toLowerCase();
+        if (typeof document !== 'undefined' && isCoveredByReact(eventName)) {
+          acc[name] = value;
+        }
+      } else {
+        // we should only render strings, booleans, and numbers as attrs in html.
+        // objects, functions, arrays etc get synced via properties on mount.
+        const type = typeof value;
+
+        if (type === 'string' || type === 'boolean' || type === 'number') {
+          acc[camelToDashCase(name)] = value;
+        }
+      }
+      return acc;
+    }, {});
+
+    if (manipulatePropsFunction) {
+      propsToPass = manipulatePropsFunction(props, propsToPass);
+    }
+
+    const newProps: NewProps<ElementType> = {
+      ...propsToPass,
+      ref: mergeRefs(forwardedRef, setComponentElRef),
+      style,
+    };
+
     /**
      * We use createElement here instead of
      * React.createElement to work around a
@@ -134,7 +136,7 @@ export const createReactComponent = <
     return data?.html ? (
       <div dangerouslySetInnerHTML={{ __html: data?.html }}></div>
     ) : (
-      createElement(tagName, { ...newProps, data: data }, children)
+      createElement(tagName, newProps, children)
     );
   };
 
