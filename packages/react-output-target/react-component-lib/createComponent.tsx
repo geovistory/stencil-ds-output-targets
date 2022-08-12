@@ -50,9 +50,7 @@ export const createReactComponent = <
     const setComponentElRef = (element: ElementType) => {
       componentEl = element;
     };
-    useEffect(() => {
-      attachProps(componentEl, props, props);
-    });
+
 
     const isServer = typeof window === 'undefined';
     const { children, forwardedRef, style, className, ref, ...cProps } = props;
@@ -125,6 +123,10 @@ export const createReactComponent = <
       ref: mergeRefs(forwardedRef, setComponentElRef),
       style,
     };
+
+    useEffect(() => {
+      attachProps(componentEl, newProps, props);
+    });
 
     /**
      * We use createElement here instead of
