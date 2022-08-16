@@ -42,7 +42,7 @@ export const createReactComponent = <
   ) => ExpandedPropsTypes,
   defineCustomElement?: () => void,
   componentClass?: any,
-  stencilHydrateProvider?: () => Promise<StencilHydrate>,
+  stencilRenderToStringProvider?: Promise<StencilSSRFunction>,
 ) => {
   if (defineCustomElement !== undefined) {
     defineCustomElement();
@@ -63,7 +63,7 @@ export const createReactComponent = <
      */
     const [data, error] = useSSE(async () => {
       // stop, if we are in a browser
-      if (!isServer || !componentClass || !stencilHydrateProvider) return true;
+      if (!isServer || !componentClass || !stencilRenderToStringProvider) return true;
 
       let serverFetched: any;
 
@@ -82,7 +82,7 @@ export const createReactComponent = <
 
       // render webcomponent html (using stencil hydrate)
       const { serverRenderWebComponent } = await import('./utils/serverRenderWebComponent');
-      const stencilHydrate = await stencilHydrateProvider();
+      const stencilRenderToString= await stencilRenderToStringProvider;
       const html = await serverRenderWebComponent<ElementType>(
         tagName,
         newProps,

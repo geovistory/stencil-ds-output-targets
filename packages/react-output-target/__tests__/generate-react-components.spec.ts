@@ -20,7 +20,7 @@ describe('createComponentDefinition', () => {
       methods: [],
       events: [],
     }, true, true);
-    expect(output[0]).toEqual(`export const MyComponent = /*@__PURE__*/createReactComponent<JSX.MyComponent, HTMLMyComponentElement>('my-component', undefined, undefined, defineMyComponent, MyComponentCmp, stencilHydrateProvider);`);
+    expect(output[0]).toEqual(`export const MyComponent = /*@__PURE__*/createReactComponent<JSX.MyComponent, HTMLMyComponentElement>('my-component', undefined, undefined, defineMyComponent, MyComponentCmp, stencilRenderToString);`);
   });
 
 
@@ -181,7 +181,7 @@ import { createReactComponent } from './react-component-lib';
 
 import type { JSX } from 'component-library/components';
 
-const stencilHydrateProvider = import('component-library/hydrate');
+const stencilRenderToString = import('component-library/hydrate').then(h=>h.renderToString);
 
 
 
