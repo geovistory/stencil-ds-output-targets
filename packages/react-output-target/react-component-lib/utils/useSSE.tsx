@@ -10,6 +10,7 @@ const d: IInternalContext = {
 export const InternalContext = React.createContext(d);
 
 import { useContext, useState, useEffect, DependencyList, Props } from 'react';
+import { StencilSSRFunction } from './serverRenderWebComponent';
 
 export interface IInternalContext {
   requests: {
@@ -20,6 +21,7 @@ export interface IInternalContext {
   resolved: boolean;
   pendingChild: boolean;
   current: number;
+  renderToString?: StencilSSRFunction;
 }
 interface IDataContext {
   [k: string]: any;

@@ -1,4 +1,4 @@
-import React, { createElement, useEffect } from 'react';
+import React, { createElement, useContext, useEffect } from 'react';
 import {
   attachProps,
   camelToDashCase,
@@ -8,7 +8,7 @@ import {
   mergeRefs,
 } from './utils';
 import { StencilSSRFunction } from './utils/serverRenderWebComponent';
-import { useSSE } from './utils/useSSE';
+import { InternalContext, useSSE } from './utils/useSSE';
 
 export interface HTMLStencilElement extends HTMLElement {
   componentOnReady(): Promise<this>;
@@ -42,7 +42,6 @@ export const createReactComponent = <
   ) => ExpandedPropsTypes,
   defineCustomElement?: () => void,
   componentClass?: any,
-  stencilRenderToStringProvider?: Promise<StencilSSRFunction>,
 ) => {
   if (defineCustomElement !== undefined) {
     defineCustomElement();
@@ -62,8 +61,11 @@ export const createReactComponent = <
      * Server Side Rendering
      */
     const [data, error] = useSSE(async () => {
+
+      const stencilRenderToString = useContext(InternalContext).renderToString;
+
       // stop, if we are in a browser
-      if (!isServer || !componentClass || !stencilRenderToStringProvider) return true;
+      if (!isServer || !componentClass || !stencilRenderToString) return true;
 
       let serverFetched: any;
 
@@ -82,7 +84,6 @@ export const createReactComponent = <
 
       // render webcomponent html (using stencil hydrate)
       const { serverRenderWebComponent } = await import('./utils/serverRenderWebComponent');
-      const stencilRenderToString= await stencilRenderToStringProvider;
       const html = await serverRenderWebComponent<ElementType>(
         tagName,
         newProps,
