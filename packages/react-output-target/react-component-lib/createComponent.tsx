@@ -87,7 +87,7 @@ export const createReactComponent = <
         tagName,
         newProps,
         children,
-        stencilHydrate.renderToString,
+        stencilRenderToString,
         serverFetched,
       );
 
