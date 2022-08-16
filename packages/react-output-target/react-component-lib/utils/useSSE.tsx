@@ -199,11 +199,15 @@ export const createServerContext = () => {
   const hasPendingChild = () => {
     return internalContextValue.pendingChild;
   };
+  const setRenderToStringFn(renderToString:StencilSSRFunction)=>{
+    internalContextValue.renderToString=renderToString
+  }
 
   return {
     ServerDataContext,
     resetInternalContext,
     resolveData,
-    hasPendingChild
+    hasPendingChild,
+    setRenderToStringFn
   };
 };
