@@ -45,10 +45,7 @@ export type ResolveData = {
  * @param effect function returning promise
  * @param dependencies  list of dependencies like in useEffect
  */
-export function useSSE<T>(
-  effect: () => Promise<any>,
-  dependencies?: DependencyList
-): T[] {
+export function useSSE<T>(effect: () => Promise<any>, dependencies?: DependencyList): T[] {
   const internalContext: IInternalContext = useContext(InternalContext);
   let callId = internalContext.current;
   internalContext.current++;
@@ -110,9 +107,7 @@ export function useSSE<T>(
   return [data, error];
 }
 
-export const createBroswerContext = (
-  variableName: string = '_initialDataContext'
-) => {
+export const createBroswerContext = (variableName: string = '_initialDataContext') => {
   const initial = window && window[variableName] ? window[variableName] : {};
   let internalContextValue: IInternalContext = {
     current: 0,
@@ -123,9 +118,7 @@ export const createBroswerContext = (
   function BroswerDataContext<T>(props: Props<T>) {
     return (
       <InternalContext.Provider value={internalContextValue}>
-        <DataContext.Provider value={initial}>
-          {props.children}
-        </DataContext.Provider>
+        <DataContext.Provider value={initial}>{props.children}</DataContext.Provider>
       </InternalContext.Provider>
     );
   }
@@ -152,9 +145,7 @@ export const createServerContext = () => {
   function ServerDataContext<T>(props: Props<T>) {
     return (
       <InternalContext.Provider value={internalContextValue}>
-        <DataContext.Provider value={ctx}>
-          {props.children}
-        </DataContext.Provider>
+        <DataContext.Provider value={ctx}>{props.children}</DataContext.Provider>
       </InternalContext.Provider>
     );
   }
@@ -169,7 +160,7 @@ export const createServerContext = () => {
           return Promise.race([effect.promise, timeOutPr]).catch(() => {
             return effect.cancel();
           });
-        })
+        }),
       );
     } else {
       await Promise.all(effects);
@@ -183,9 +174,7 @@ export const createServerContext = () => {
         return this.data;
       },
       toHtml: function (variableName: string = '_initialDataContext') {
-        return `<script>window.${variableName} = ${JSON.stringify(
-          this
-        )};</script>`;
+        return `<script>window.${variableName} = ${JSON.stringify(this)};</script>`;
       },
     };
   };
@@ -199,15 +188,15 @@ export const createServerContext = () => {
   const hasPendingChild = () => {
     return internalContextValue.pendingChild;
   };
-  const setRenderToStringFn(renderToString:StencilSSRFunction)=>{
-    internalContextValue.renderToString=renderToString
-  }
+  const setRenderToStringFn = (renderToString: StencilSSRFunction) => {
+    internalContextValue.renderToString = renderToString;
+  };
 
   return {
     ServerDataContext,
     resetInternalContext,
     resolveData,
     hasPendingChild,
-    setRenderToStringFn
+    setRenderToStringFn,
   };
 };
