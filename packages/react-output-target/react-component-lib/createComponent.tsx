@@ -24,6 +24,10 @@ export interface HTMLStencilFetchElement extends HTMLStencilElement {
   data?: any;
 }
 
+export type StencilHydrate = {
+  renderToString: StencilSSRFunction;
+};
+
 export const createReactComponent = <
   PropType,
   ElementType extends HTMLStencilFetchElement,
@@ -38,7 +42,7 @@ export const createReactComponent = <
   ) => ExpandedPropsTypes,
   defineCustomElement?: () => void,
   componentClass?: any,
-  stencilRenderToString?: StencilSSRFunction,
+  stencilHydrateProvider?: () => Promise<StencilHydrate>,
 ) => {
   if (defineCustomElement !== undefined) {
     defineCustomElement();
@@ -51,7 +55,6 @@ export const createReactComponent = <
       componentEl = element;
     };
 
-
     const isServer = typeof window === 'undefined';
     const { children, forwardedRef, style, className, ref, ...cProps } = props;
 
@@ -60,7 +63,7 @@ export const createReactComponent = <
      */
     const [data, error] = useSSE(async () => {
       // stop, if we are in a browser
-      if (!isServer || !componentClass || !stencilRenderToString) return true;
+      if (!isServer || !componentClass || !stencilHydrateProvider) return true;
 
       let serverFetched: any;
 
@@ -79,11 +82,12 @@ export const createReactComponent = <
 
       // render webcomponent html (using stencil hydrate)
       const { serverRenderWebComponent } = await import('./utils/serverRenderWebComponent');
+      const stencilHydrate = await stencilHydrateProvider();
       const html = await serverRenderWebComponent<ElementType>(
         tagName,
         newProps,
         children,
-        stencilRenderToString,
+        stencilHydrate.renderToString,
         serverFetched,
       );
 
@@ -123,7 +127,6 @@ export const createReactComponent = <
       ref: mergeRefs(forwardedRef, setComponentElRef),
       style,
     };
-
 
     useEffect(() => {
       attachProps(componentEl, cPropsWithData, newProps); // TODO: newProps should be prevProps!

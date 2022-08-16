@@ -106,7 +106,7 @@ import { createReactComponent } from './react-component-lib';\n`;
   if ((outputTarget.includeImportCustomElements || outputTarget.enableSSR) && outputTarget.componentCorePackage !== undefined) {
     if (outputTarget.enableSSR) {
       const hydratePath = getPathToHydrateScript(outputTarget)
-      sourceImports += `import { renderToString } from '${hydratePath}';\n\n`;
+      sourceImports += `const stencilHydrateProvider = import('${hydratePath}');\n\n`;
     }
 
     const cmpImports = components.map(component => {
@@ -159,7 +159,7 @@ export function createComponentDefinition(cmpMeta: ComponentCompilerMeta, includ
 
   if (enableSSR) {
     args[4] = `${tagNameAsPascal}Cmp`
-    args[5] = `renderToString`
+    args[5] = `stencilHydrateProvider`
   }
 
   while (args[args.length - 1] === 'undefined') {
