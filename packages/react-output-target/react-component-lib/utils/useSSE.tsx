@@ -21,7 +21,7 @@ export interface IInternalContext {
   resolved: boolean;
   pendingChild: boolean;
   current: number;
-  renderToString?: StencilSSRFunction;
+  renderToString?: Promise<StencilSSRFunction>;
 }
 interface IDataContext {
   [k: string]: any;
@@ -188,7 +188,7 @@ export const createServerContext = () => {
   const hasPendingChild = () => {
     return internalContextValue.pendingChild;
   };
-  const setRenderToStringFn = (renderToString: StencilSSRFunction) => {
+  const setRenderToStringFn = (renderToString: Promise<StencilSSRFunction>) => {
     internalContextValue.renderToString = renderToString;
   };
 

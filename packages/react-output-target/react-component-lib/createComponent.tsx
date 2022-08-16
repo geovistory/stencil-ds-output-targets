@@ -62,10 +62,10 @@ export const createReactComponent = <
      */
     const [data, error] = useSSE(async () => {
 
-      const stencilRenderToString = useContext(InternalContext).renderToString;
+      const stencilRenderToStringPromise = useContext(InternalContext).renderToString;
 
       // stop, if we are in a browser
-      if (!isServer || !componentClass || !stencilRenderToString) return true;
+      if (!isServer || !componentClass || !stencilRenderToStringPromise) return true;
 
       let serverFetched: any;
 
@@ -84,6 +84,8 @@ export const createReactComponent = <
 
       // render webcomponent html (using stencil hydrate)
       const { serverRenderWebComponent } = await import('./utils/serverRenderWebComponent');
+      const stencilRenderToString = await stencilRenderToStringPromise;
+
       const html = await serverRenderWebComponent<ElementType>(
         tagName,
         newProps,
