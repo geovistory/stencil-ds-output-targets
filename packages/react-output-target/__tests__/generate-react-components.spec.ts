@@ -63,7 +63,6 @@ import type { JSX } from 'component-library';
 import { applyPolyfills, defineCustomElements } from 'component-library/dist/loader';
 
 applyPolyfills().then(() => defineCustomElements());
-
 `,
     );
   });
@@ -88,7 +87,6 @@ import type { JSX } from 'component-library';
 import { defineCustomElements } from 'component-library/dist/loader';
 
 defineCustomElements();
-
 `,
     );
   });
@@ -110,9 +108,6 @@ import { createReactComponent } from './react-component-lib';
 
 import type { JSX } from 'component-library';
 
-
-
-
 `,
     );
   });
@@ -132,9 +127,6 @@ import type { JSX } from 'component-library';
 import { createReactComponent } from './react-component-lib';
 
 import type { JSX } from 'component-library/components';
-
-
-
 
 `,
     );
@@ -157,9 +149,6 @@ import { createReactComponent } from './react-component-lib';
 
 import type { JSX } from 'component-library/custom-dir/hello';
 
-
-
-
 `,
     );
   });
@@ -181,12 +170,64 @@ import { createReactComponent } from './react-component-lib';
 
 import type { JSX } from 'component-library/components';
 
-
-
-
 `,
     );
   });
+
+  it('should create individualComponentFiles if true in the outputTarget', () => {
+    const outputTarget: OutputTargetReact = {
+      componentCorePackage: 'component-library',
+      proxiesFile: '../component-library-react/src/proxies.ts',
+      enableSSR: true,
+      individualComponentFiles: true,
+      individualComponentFilesDir: ''
+    };
+
+    const finalText = generateProxies(config, components, pkgData, outputTarget, rootDir);
+    expect(finalText).toEqual(
+      `/* eslint-disable */
+/* tslint:disable */
+/* auto-generated react proxies */
+import { createReactComponent } from './react-component-lib';
+
+import type { JSX } from 'component-library';
+
+`,
+
+
+    );
+  });
+
+  it('should create registerIndividualCustomElements if true in the outputTarget', () => {
+    const outputTarget: OutputTargetReact = {
+      componentCorePackage: 'component-library',
+      customElementsDir: 'dist/components',
+      proxiesFile: '../component-library-react/src/proxies.ts',
+      enableSSR: true,
+      individualComponentFiles: true,
+      individualComponentFilesDir: '',
+      individualComponentDefineCustomElement: true
+    };
+
+    const component = { tagName: 'foo-component' } as ComponentCompilerMeta;
+
+    const finalText = generateProxies(config, [component], pkgData, outputTarget, rootDir);
+    expect(finalText).toEqual(
+      `/* eslint-disable */
+/* tslint:disable */
+/* auto-generated react proxies */
+import { createReactComponent } from './react-component-lib';
+
+import type { JSX } from 'component-library';
+
+import { defineCustomElement as defineFooComponent, FooComponent as FooComponentCmp } from 'component-library/dist/components/foo-component.js';
+defineFooComponent()
+
+export const FooComponent = /*@__PURE__*/createReactComponent<JSX.FooComponent, HTMLFooComponentElement>('foo-component', undefined, undefined, undefined, FooComponentCmp);
+`,
+    );
+  });
+
 
 });
 

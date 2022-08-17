@@ -12,7 +12,9 @@ export interface OutputTargetReact {
   includeImportCustomElements?: boolean;
   customElementsDir?: string;
   enableSSR?: boolean;
-  hydrateDir?: string;
+  individualComponentFiles?: boolean
+  individualComponentFilesDir?: string
+  individualComponentDefineCustomElement?: boolean
 }
 
 /**

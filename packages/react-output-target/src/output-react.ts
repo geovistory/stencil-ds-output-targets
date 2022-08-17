@@ -26,8 +26,19 @@ export async function reactProxyOutput(
   const rootDir = config.rootDir as string;
   const pkgData = await readPackageJson(rootDir);
 
-  const finalText = generateProxies(config, filteredComponents, pkgData, outputTarget, rootDir);
-  await compilerCtx.fs.writeFile(outputTarget.proxiesFile, finalText);
+  if (outputTarget.individualComponentFiles) {
+    // create one file per component
+    for (const cmp of filteredComponents) {
+      const finalText = generateProxies(config, [cmp], pkgData, outputTarget, rootDir);
+      const file = path.join(outputTarget.individualComponentFilesDir ?? '', `${cmp.tagName}.ts`)
+      await compilerCtx.fs.writeFile(file, finalText);
+    }
+  }
+  else {
+    // create one file for all components
+    const finalText = generateProxies(config, filteredComponents, pkgData, outputTarget, rootDir);
+    await compilerCtx.fs.writeFile(outputTarget.proxiesFile, finalText);
+  }
   await copyResources(config, outputTarget);
 }
 
@@ -88,13 +99,15 @@ import { createReactComponent } from './react-component-lib';\n`;
 
   let sourceImports = '';
   let registerCustomElements = '';
+  let registerIndividualCustomElements = '';
+
+
 
   /**
-   * Build an array of Custom Elements build imports and namespace them so that they do not conflict with the React
-   * wrapper names. For example, IonButton would be imported as IonButtonCmp to not conflict with the IonButton React
-   * Component that takes in the Web Component as a parameter.
+   * Create imports from core package loader (by default from my-web-components/loader)
    */
-   if (!outputTarget.includeImportCustomElements) {
+  if (!outputTarget.includeImportCustomElements && !outputTarget.individualComponentFiles) {
+
     if (outputTarget.includePolyfills && outputTarget.includeDefineCustomElements) {
       sourceImports = `import { ${APPLY_POLYFILLS}, ${REGISTER_CUSTOM_ELEMENTS} } from '${pathToCorePackageLoader}';\n`;
       registerCustomElements = `${APPLY_POLYFILLS}().then(() => ${REGISTER_CUSTOM_ELEMENTS}());`;
@@ -103,25 +116,37 @@ import { createReactComponent } from './react-component-lib';\n`;
       registerCustomElements = `${REGISTER_CUSTOM_ELEMENTS}();`;
     }
   }
-  if ((outputTarget.includeImportCustomElements || outputTarget.enableSSR) && outputTarget.componentCorePackage !== undefined) {
-    // if (outputTarget.enableSSR) {
-    //   const hydratePath = getPathToHydrateScript(outputTarget)
-    //   sourceImports += `const stencilRenderToString = import('${hydratePath}').then(h=>h.renderToString);\n\n`;
-    // }
 
-    const cmpImports = components.map(component => {
+  /**
+   * Create imports from core package loader (by default from my-web-components/dist/components)
+   */
+   if ((outputTarget.includeImportCustomElements || outputTarget.enableSSR || outputTarget.individualComponentDefineCustomElement) && outputTarget.componentCorePackage !== undefined) {
+
+    const componentsDir = `${normalizePath(outputTarget.componentCorePackage!)}/${outputTarget.customElementsDir || 'components'}`
+
+    const importDefineCustomElement = outputTarget.includeImportCustomElements || outputTarget.individualComponentDefineCustomElement
+
+    const cmpImports: string[] = []
+    const cmpDefineCustomElmts: string[] = []
+
+    components.forEach(component => {
       const pascalImport = dashToPascalCase(component.tagName);
+      const impVars = []
+      const defineCustomElementName = `define${pascalImport}`
 
-      const imports = []
-      if (outputTarget.includeImportCustomElements) imports.push(`defineCustomElement as define${pascalImport}`)
-      if (outputTarget.enableSSR) imports.push(`${pascalImport} as ${pascalImport}Cmp`)
+      if (importDefineCustomElement) impVars.push(`defineCustomElement as ${defineCustomElementName}`)
 
-      return `import { ${imports.join(', ')} } from '${normalizePath(outputTarget.componentCorePackage!)}/${outputTarget.customElementsDir ||
-        'components'
-        }/${component.tagName}.js';`;
+      if (outputTarget.enableSSR) impVars.push(`${pascalImport} as ${pascalImport}Cmp`)
+
+      cmpImports.push(`import { ${impVars.join(', ')} } from '${componentsDir}/${component.tagName}.js';`);
+
+      if (outputTarget.individualComponentDefineCustomElement) {
+        cmpDefineCustomElmts.push(`${defineCustomElementName}()\n`)
+      }
     });
-    sourceImports += cmpImports.join('\n');
 
+    sourceImports += cmpImports.join('\n');
+    registerIndividualCustomElements += cmpDefineCustomElmts.join('\n')
   }
 
 
@@ -130,13 +155,14 @@ import { createReactComponent } from './react-component-lib';\n`;
     typeImports,
     sourceImports,
     registerCustomElements,
+    registerIndividualCustomElements,
     components.map(cmpMeta => createComponentDefinition(
       cmpMeta,
       outputTarget.includeImportCustomElements,
       outputTarget.enableSSR)).join('\n'),
   ];
 
-  return final.join('\n') + '\n';
+  return final.filter(s => s !== '').join('\n') + '\n';
 }
 
 /**
@@ -226,22 +252,11 @@ export function getPathToCorePackageLoader(config: Config, outputTarget: OutputT
   return normalizePath(path.join(basePkg, loaderDir));
 }
 
-/**
- * Derive the path to the hydrate script
- * @param outputTarget the output target used for generating the Stencil-React bindings
- * @returns the derived hydrate script path
- */
-export function getPathToHydrateScript(outputTarget: OutputTargetReact): string {
-  const basePkg = outputTarget.componentCorePackage || '';
 
-  const hydrateDir = outputTarget.hydrateDir || DEFAULT_HYDRATE_DIR;
-  return normalizePath(path.join(basePkg, hydrateDir));
-}
 
 export const GENERATED_DTS = 'components.d.ts';
 const IMPORT_TYPES = 'JSX';
 const REGISTER_CUSTOM_ELEMENTS = 'defineCustomElements';
 const APPLY_POLYFILLS = 'applyPolyfills';
 const DEFAULT_LOADER_DIR = '/dist/loader';
-const DEFAULT_HYDRATE_DIR = '/hydrate';
 
