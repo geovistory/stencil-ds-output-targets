@@ -17,6 +17,7 @@ export interface HTMLStencilElement extends HTMLElement {
 interface StencilReactInternalProps<ElementType> extends React.HTMLAttributes<ElementType> {
   forwardedRef: React.RefObject<ElementType>;
   ref?: React.Ref<any>;
+  data?: any;
 }
 export type NewProps<ElementType> = Omit<StencilReactInternalProps<ElementType>, 'forwardedRef'>;
 export interface HTMLStencilFetchElement extends HTMLStencilElement {
@@ -60,8 +61,7 @@ export const createReactComponent = <
     /**
      * Server Side Rendering
      */
-    const [data, error] = useSSE(async () => {
-
+    const [sse, error] = useSSE(async () => {
       const stencilRenderToStringPromise = useContext(InternalContext).renderToString;
 
       // stop, if we are in a browser
@@ -99,10 +99,8 @@ export const createReactComponent = <
 
     if (error) console.warn(error);
 
-    const cPropsWithData = { ...cProps, data: data };
-
-    let propsToPass = Object.keys(cPropsWithData).reduce((acc: any, name) => {
-      const value = (cPropsWithData as any)[name];
+    let propsToPass = Object.keys(cProps).reduce((acc: any, name) => {
+      const value = (cProps as any)[name];
 
       if (name.indexOf('on') === 0 && name[2] === name[2].toUpperCase()) {
         const eventName = name.substring(2).toLowerCase();
@@ -131,8 +129,33 @@ export const createReactComponent = <
       style,
     };
 
+    if (!isServer) {
+      // we are in a browser
+      if (typeof cProps.data === 'object') {
+        // if data is passed in as object, we pass stringified empty object to prevent
+        // webcomponent from fetching data on initialization.
+        // the data will later be attached as object in useEffect, once the
+        // componentEl is given
+        newProps.data = '{}';
+      }
+    }
+
     useEffect(() => {
-      attachProps(componentEl, cPropsWithData, newProps); // TODO: newProps should be prevProps!
+      // useEffect() is only called in browser
+
+      let toAttatch = newProps;
+
+      if (typeof cProps.data === 'object') {
+        // if data is passed in as object, we attatch it here to the webcomponent
+        toAttatch = { ...newProps, data: cProps.data };
+      }
+
+      else if(typeof cProps.data === 'string' && !!sse){
+        // if data is passed as string and given by sse, we attatch sse data here
+        toAttatch = { ...newProps, data: sse }
+      }
+
+      attachProps(componentEl, toAttatch, newProps); // TODO: newProps should be prevProps!
     });
 
     /**
@@ -142,8 +165,8 @@ export const createReactComponent = <
      * React.createElement causes all elements to be rendered
      * as <tagname> instead of the actual Web Component.
      */
-    return data?.html ? (
-      <div dangerouslySetInnerHTML={{ __html: data?.html }}></div>
+    return sse?.html ? (
+      <div dangerouslySetInnerHTML={{ __html: sse?.html }}></div>
     ) : (
       createElement(tagName, newProps, children)
     );
