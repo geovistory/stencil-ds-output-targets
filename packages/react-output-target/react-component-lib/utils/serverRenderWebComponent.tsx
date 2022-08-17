@@ -34,6 +34,10 @@ export async function serverRenderWebComponent<
     removeHtmlComments: true,
   });
   const renderedHtml = hydrateResult.html;
+
+  // TODO: improve the way we extract the component html out of document
+  // TODO: remove the data attribute from the tag name, since sse data is
+  //       provided via javascript
   const regex = new RegExp(`<${tagName}(.*)${tagName}>`, 'gs');
   const html = regex.exec(renderedHtml)?.[0];
   return html;
