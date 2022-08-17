@@ -131,8 +131,15 @@ export const createReactComponent = <
 
     if (!isServer) {
       // we are in a browser
-      if (sse === 'object') {
+      if (typeof sse === 'object') {
         // if server side fetched data is passed in as object,
+        // we pass stringified loading object to prevent
+        // webcomponent from fetching data on initialization.
+        // the data will later be attached as object in useEffect, once the
+        // componentEl is given
+        newProps.data = '{"loading":true}';
+      } else if (typeof cProps.data === 'object') {
+        // if data is passed in as object to react component,
         // we pass stringified loading object to prevent
         // webcomponent from fetching data on initialization.
         // the data will later be attached as object in useEffect, once the
