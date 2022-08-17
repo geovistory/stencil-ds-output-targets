@@ -143,16 +143,13 @@ export const createReactComponent = <
     useEffect(() => {
       // useEffect() is only called in browser
 
-      let toAttatch = newProps;
+      // attatch all props the webcomponent, even objects, arrays, functions that
+      // could not be passed to component via createElement
+      let toAttatch = { ...cProps };
 
-      if (typeof cProps.data === 'object') {
-        // if data is passed in as object, we attatch it here to the webcomponent
-        toAttatch = { ...newProps, data: cProps.data };
-      }
-
-      else if(typeof cProps.data === 'string' && !!sse){
-        // if data is passed as string and given by sse, we attatch sse data here
-        toAttatch = { ...newProps, data: sse }
+      if (!!sse) {
+        // if data is fetched by useSSE, we attatch sse data here (-> hydration)
+        toAttatch = { ...cProps, data: sse };
       }
 
       attachProps(componentEl, toAttatch, newProps); // TODO: newProps should be prevProps!
