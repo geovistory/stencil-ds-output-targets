@@ -136,7 +136,7 @@ export const createReactComponent = <
         // webcomponent from fetching data on initialization.
         // the data will later be attached as object in useEffect, once the
         // componentEl is given
-        newProps.data = '{}';
+        newProps.data = '{"loading":true}';
       }
     }
 
