@@ -1,4 +1,4 @@
-function shimHtmlElement(element: any) {
+export function shimHtmlElement(element: any) {
   element.prototype.__attachShadow = () => { }; // shim __attachShadow()
   element.prototype.attachShadow = () => { }; // shim attachShadow()
   element.prototype.__createElement = () => { };
