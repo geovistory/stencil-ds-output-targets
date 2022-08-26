@@ -8,7 +8,6 @@ import {
   mergeRefs,
 } from './utils';
 import { StencilSSRFunction } from './utils/serverRenderWebComponent';
-import { shimHtmlElement } from './utils/shimHtmlElement';
 import { InternalContext, useSSE } from './utils/useSSE';
 
 export interface HTMLStencilElement extends HTMLElement {
