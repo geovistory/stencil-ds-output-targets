@@ -68,33 +68,36 @@ export const createReactComponent = <
       // stop, if we are in a browser
       if (!isServer || !componentClass || !stencilRenderToStringPromise) return true;
 
-      let serverFetched: any;
-
-      // instantiate new component
-      const shimmedComponent = shimHtmlElement(componentClass);
-      const component = new shimmedComponent();
-
-      // assign properties to the component
-      Object.assign(component, cProps);
-
-      // fetch data, if component has fetchData() function
-      if (component?.fetchData) {
-        serverFetched = await component.fetchData();
-      }
-
-      // render webcomponent html (using stencil hydrate)
-      const { serverRenderWebComponent } = await import('./utils/serverRenderWebComponent');
+      const e = createElement(tagName, newProps, children)
       const stencilRenderToString = await stencilRenderToStringPromise;
+      return stencilRenderToString(e)
+      // let serverFetched: any;
 
-      const html = await serverRenderWebComponent<ElementType>(
-        tagName,
-        newProps,
-        children,
-        stencilRenderToString,
-        serverFetched,
-      );
+      // // instantiate new component
+      // const shimmedComponent = shimHtmlElement(componentClass);
+      // const component = new shimmedComponent();
 
-      return { serverFetched, html };
+      // // assign properties to the component
+      // Object.assign(component, cProps);
+
+      // // fetch data, if component has fetchData() function
+      // if (component?.fetchData) {
+      //   serverFetched = await component.fetchData();
+      // }
+
+      // // render webcomponent html (using stencil hydrate)
+      // const { serverRenderWebComponent } = await import('./utils/serverRenderWebComponent');
+      // const stencilRenderToString = await stencilRenderToStringPromise;
+
+      // const html = await serverRenderWebComponent<ElementType>(
+      //   tagName,
+      //   newProps,
+      //   children,
+      //   stencilRenderToString,
+      //   serverFetched,
+      // );
+
+      // return { serverFetched, html };
     });
 
     if (error) console.warn(error);
