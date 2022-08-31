@@ -220,7 +220,7 @@ import { createReactComponent } from './react-component-lib';
 
 import type { JSX } from 'component-library';
 
-import { defineCustomElement as defineFooComponent, FooComponent as FooComponentCmp } from 'component-library/dist/components/foo-component.js';
+import { defineCustomElement as defineFooComponent } from 'component-library/dist/components/foo-component.js';
 defineFooComponent()
 
 export const FooComponent = /*@__PURE__*/createReactComponent<JSX.FooComponent, HTMLFooComponentElement>('foo-component');
