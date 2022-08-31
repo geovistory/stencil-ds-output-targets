@@ -1,7 +1,6 @@
 import type {
   CompilerCtx
 } from '@stencil/core/internal';
-import { readFileSync } from 'fs';
 import type { OutputTargetHappyDOM } from './types';
 
 /**
