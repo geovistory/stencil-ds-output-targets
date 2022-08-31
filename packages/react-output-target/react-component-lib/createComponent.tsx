@@ -7,7 +7,7 @@ import {
   isCoveredByReact,
   mergeRefs,
 } from './utils';
-import { StencilSSRFunction } from './utils/serverRenderWebComponent';
+import { StencilSSRFunction } from './utils/StencilSSRFunction';
 import { InternalContext, useSSE } from './utils/useSSE';
 
 export interface HTMLStencilElement extends HTMLElement {
@@ -42,7 +42,6 @@ export const createReactComponent = <
     propsToPass: any,
   ) => ExpandedPropsTypes,
   defineCustomElement?: () => void,
-  componentClass?: any,
 ) => {
   if (defineCustomElement !== undefined) {
     defineCustomElement();
@@ -63,40 +62,11 @@ export const createReactComponent = <
      */
     const [sse, error] = useSSE(async () => {
       const stencilRenderToStringPromise = useContext(InternalContext).renderToString;
-
       // stop, if we are in a browser
-      if (!isServer || !componentClass || !stencilRenderToStringPromise) return true;
-
-      const e = createElement(tagName, newProps, children)
+      if (!isServer || !stencilRenderToStringPromise) return true;
       const stencilRenderToString = await stencilRenderToStringPromise;
+      const e = createElement(tagName, newProps, children)
       return stencilRenderToString(e)
-      // let serverFetched: any;
-
-      // // instantiate new component
-      // const shimmedComponent = shimHtmlElement(componentClass);
-      // const component = new shimmedComponent();
-
-      // // assign properties to the component
-      // Object.assign(component, cProps);
-
-      // // fetch data, if component has fetchData() function
-      // if (component?.fetchData) {
-      //   serverFetched = await component.fetchData();
-      // }
-
-      // // render webcomponent html (using stencil hydrate)
-      // const { serverRenderWebComponent } = await import('./utils/serverRenderWebComponent');
-      // const stencilRenderToString = await stencilRenderToStringPromise;
-
-      // const html = await serverRenderWebComponent<ElementType>(
-      //   tagName,
-      //   newProps,
-      //   children,
-      //   stencilRenderToString,
-      //   serverFetched,
-      // );
-
-      // return { serverFetched, html };
     });
 
     if (error) console.warn(error);
@@ -130,25 +100,6 @@ export const createReactComponent = <
       ref: mergeRefs(forwardedRef, setComponentElRef),
       style,
     };
-
-    if (!isServer) {
-      // we are in a browser
-      if (!!sse && typeof sse === 'object') {
-        // if server side fetched data is passed in as object,
-        // we pass stringified loading object to prevent
-        // webcomponent from fetching data on initialization.
-        // the data will later be attached as object in useEffect, once the
-        // componentEl is given
-        newProps.data = '{"loading":true}';
-      } else if (!!cProps.data && typeof cProps.data === 'object') {
-        // if data is passed in as object to react component,
-        // we pass stringified loading object to prevent
-        // webcomponent from fetching data on initialization.
-        // the data will later be attached as object in useEffect, once the
-        // componentEl is given
-        newProps.data = '{"loading":true}';
-      }
-    }
 
     useEffect(() => {
       // useEffect() is only called in browser

@@ -10,7 +10,7 @@ const d: IInternalContext = {
 export const InternalContext = React.createContext(d);
 
 import { useContext, useState, useEffect, DependencyList, Props } from 'react';
-import { StencilSSRFunction } from './serverRenderWebComponent';
+import type { StencilSSRFunction } from './StencilSSRFunction';
 
 export interface IInternalContext {
   requests: {
@@ -33,12 +33,6 @@ declare global {
     _initialDataContext: object;
   }
 }
-
-export type ResolveData = {
-  data: IDataContext;
-  toJSON: () => IDataContext;
-  toHtml: (variableName?: string) => string;
-};
 
 /**
  *
