@@ -41,9 +41,6 @@ export function normalizeOutputTarget(config: Config, outputTarget: any): Output
   if (outputTarget.loaderPath == null) {
     throw new Error('loaderPath is required');
   }
-  if (outputTarget.baseURI == null) {
-    throw new Error('baseURI is required');
-  }
   if (outputTarget.outputPath == null) {
     throw new Error('outputPath is required');
   }
