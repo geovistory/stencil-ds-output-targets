@@ -1,11 +1,7 @@
 import type {
-  CompilerCtx,
-
-  Config,
-  CopyResults
+  CompilerCtx
 } from '@stencil/core/internal';
 import { readFileSync } from 'fs';
-import path from 'path';
 import type { OutputTargetHappyDOM } from './types';
 
 /**
@@ -15,11 +11,11 @@ import type { OutputTargetHappyDOM } from './types';
  * @param outputTarget the output target configuration for generating the HappyDOM wrapper
  */
 export async function happyDomOutput(
-  config: Config,
+  // config: Config,
   compilerCtx: CompilerCtx,
   outputTarget: OutputTargetHappyDOM,
 ): Promise<void> {
-  const rootDir = config.rootDir as string;
+  // const rootDir = config.rootDir as string;
   // create the worker file
   const { content, filepath } = prepareFile(outputTarget)
   await compilerCtx.fs.writeFile(filepath, content);

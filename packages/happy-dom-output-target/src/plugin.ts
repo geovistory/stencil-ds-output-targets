@@ -14,9 +14,10 @@ export const happyDomOutputTarget = (outputTarget: OutputTargetHappyDOM): Output
     return normalizeOutputTarget(config, outputTarget);
   },
   async generator(config, compilerCtx, buildCtx) {
+    config
     const timespan = buildCtx.createTimeSpan(`generate happy-dom started`, true);
 
-    await happyDomOutput(config, compilerCtx, outputTarget);
+    await happyDomOutput(compilerCtx, outputTarget);
 
     timespan.finish(`generate happy-dom finished`);
   },
