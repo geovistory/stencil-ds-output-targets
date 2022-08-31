@@ -20,7 +20,7 @@ describe('createComponentDefinition', () => {
       methods: [],
       events: [],
     }, true, true);
-    expect(output[0]).toEqual(`export const MyComponent = /*@__PURE__*/createReactComponent<JSX.MyComponent, HTMLMyComponentElement>('my-component', undefined, undefined, defineMyComponent, MyComponentCmp);`);
+    expect(output[0]).toEqual(`export const MyComponent = /*@__PURE__*/createReactComponent<JSX.MyComponent, HTMLMyComponentElement>('my-component', undefined, undefined, defineMyComponent);`);
   });
 
 
@@ -223,7 +223,7 @@ import type { JSX } from 'component-library';
 import { defineCustomElement as defineFooComponent, FooComponent as FooComponentCmp } from 'component-library/dist/components/foo-component.js';
 defineFooComponent()
 
-export const FooComponent = /*@__PURE__*/createReactComponent<JSX.FooComponent, HTMLFooComponentElement>('foo-component', undefined, undefined, undefined, FooComponentCmp);
+export const FooComponent = /*@__PURE__*/createReactComponent<JSX.FooComponent, HTMLFooComponentElement>('foo-component');
 `,
     );
   });
