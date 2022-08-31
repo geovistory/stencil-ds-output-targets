@@ -4,7 +4,6 @@ describe('createHappyDomWorker', () => {
     const output = prepareFile({
       outputPath: './myHappyDomWorker.ts',
       loaderPath: '@my-company/my-components/loader',
-      baseURI: 'https://my-company.com',
     });
     expect(output.filepath).toEqual(`./myHappyDomWorker.ts`);
     expect(output.content).toEqual(`import { parentPort, workerData } from 'node:worker_threads';
@@ -32,7 +31,7 @@ window.asyncTaskManager = window.happyDOM.asyncTaskManager
 document.write(\`
 <html>
         <head>
-        <base href="https://my-company.com" target="_blank">
+        <base href="\${workerData.baseURI}" target="_blank">
         </head>
         <body></body>
     </html>\`)

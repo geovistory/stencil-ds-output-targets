@@ -4,7 +4,6 @@
  */
 export interface OutputTargetHappyDOM {
   loaderPath?: string;
-  baseURI?: string;
   outputPath?: string;
 }
 

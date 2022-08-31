@@ -34,41 +34,83 @@ export function prepareFile(
   // const rootDir = config.rootDir as string;
 
   // create the worker file
-  const fileString = readFileSync('./template/template.ts')
-  const content = fileString.toString()
+  const content = fileTemplate.toString()
     .replace('__loaderPath__', outputTarget.loaderPath ?? '../loader')
-    .replace('__baseURI__', outputTarget.baseURI ?? 'https://www.exapmle.com')
   const filepath = outputTarget.outputPath ?? 'happyDomWorker.ts'
   return { content, filepath }
 }
 
 
+const fileTemplate = `import { parentPort, workerData } from 'node:worker_threads';
+
+import { Window } from 'happy-dom';
+
+const window = new Window();
+// @ts-ignore
+globalThis.window = window
+// @ts-ignore
+globalThis.document = window.document
+// @ts-ignore
+globalThis.customElements = window.customElements
+// @ts-ignore
+globalThis.HTMLElement = window.HTMLElement
+// @ts-ignore
+globalThis.fetch = window.fetch
+// @ts-ignore
+globalThis.requestAnimationFrame = window.requestAnimationFrame;
+// @ts-ignore
+globalThis.CustomEvent = window.CustomEvent;
+// @ts-ignore
+window.asyncTaskManager = window.happyDOM.asyncTaskManager
+
+document.write(\`
+<html>
+        <head>
+        <base href="\${workerData.baseURI}" target="_blank">
+        </head>
+        <body></body>
+    </html>\`)
+let renderId = 0;
+
+const start = async () => {
+    const { defineCustomElements } = await import('__loaderPath__')
+    defineCustomElements(undefined)
+
+    // render web component(s) to html, including data fetching
+    const document = globalThis.document;
+    var div = document.createElement('div');
+    div.setAttribute('class', 'happy-dom-wrapper');
+    const id = 'happy-dom-wrapper-' + renderId;
+    renderId++;
+    div.setAttribute('id', id);
+    div.setAttribute('class', 'happy-dom-wrapper');
+    div.innerHTML = workerData.html.trim();
+    document.body.appendChild(div)
 
 
-// /**
-//  * Copy resources used to generate the Stencil-HappyDOM bindings. The resources copied here are not specific a project's
-//  * Stencil components, but rather the logic used to do the actual component generation.
-//  * @param config the Stencil configuration associated with the project
-//  * @param outputTarget the output target configuration for generating the Stencil-HappyDOM bindings
-//  * @returns The results of performing the copy
-//  */
-// async function copyResources(config: Config, outputTarget: OutputTargetHappyDOM): Promise<CopyResults> {
-//   if (!config.sys || !config.sys.copy || !config.sys.glob) {
-//     throw new Error('stencil is not properly initialized at this step. Notify the developer');
-//   }
-//   const srcDirectory = path.join(__dirname, '..', 'happy-dom-component-lib');
-//   const destDirectory = path.join(path.dirname(outputTarget.proxiesFile), 'happy-dom-component-lib');
+    const wrapper = window?.document?.body?.querySelector('#' + id);
 
-//   return config.sys.copy(
-//     [
-//       {
-//         src: srcDirectory,
-//         dest: destDirectory,
-//         keepDirStructure: false,
-//         warn: false,
-//       },
-//     ],
-//     srcDirectory,
-//   );
-// }
+    // wait one tick to wait for lazyLoaded stencil components
+    await new Promise(res =>setTimeout(()=>{res(true)},0))
+    return window.happyDOM.whenAsyncComplete().then(() => {
+        document.body.removeChild(div)
+        // @ts-ignore
+        const data = wrapper.data
+        // console.log(data);
+
+        // Do something when all async tasks are completed.
+        const html = wrapper?.getInnerHTML({ includeShadowRoots: true })
+        // console.log(html);
+        return { data, html }
+    });
+
+
+}
+
+start().then((res) => {
+    parentPort?.postMessage({ success: res });
+}).catch(e => parentPort?.postMessage({ error: e }))
+`
+
+
 
