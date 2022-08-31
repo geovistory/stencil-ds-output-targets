@@ -1,13 +1,12 @@
 {
-  "name": "@geovistory/react-output-target",
-  "version": "0.4.3-6",
-  "description": "React output target for @stencil/core components.",
+  "name": "@geovistory/happy-dom-output-target",
+  "version": "0.1.0",
+  "description": "HappyDOM output target for @stencil/core components.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist/",
-    "react-component-lib/"
+    "dist/"
   ],
   "publishConfig": {
     "access": "public"
@@ -35,13 +34,6 @@
   "peerDependencies": {
     "@stencil/core": "^2.9.0"
   },
-  "devDependencies": {
-    "@types/react": "^17.0.47",
-    "@types/react-dom": "^17.0.17",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "react-testing-library": "^7.0.0"
-  },
   "jest": {
     "transform": {
       "^.+\\.(js|ts|tsx)$": "<rootDir>/test/jest.preprocessor.js"
@@ -56,5 +48,9 @@
     ],
     "testURL": "http://localhost"
   },
-  "gitHead": "a3588e905186a0e86e7f88418fd5b2f9531b55e0"
+  "gitHead": "a3588e905186a0e86e7f88418fd5b2f9531b55e0",
+  "dependencies": {
+    "@types/node": "^18.7.14",
+    "happy-dom": "^6.0.4"
+  }
 }
