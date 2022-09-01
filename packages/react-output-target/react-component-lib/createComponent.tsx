@@ -116,7 +116,7 @@ export const createReactComponent = <
 
       if (!!sse) {
         // if data is fetched by useSSE, we attatch sse data here (-> hydration)
-        toAttatch = { ...cProps, data: sse };
+        toAttatch = { ...cProps, ...sse };
       }
 
       attachProps(componentEl, toAttatch, newProps); // TODO: newProps should be prevProps!
