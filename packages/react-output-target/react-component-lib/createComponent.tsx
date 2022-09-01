@@ -61,11 +61,17 @@ export const createReactComponent = <
      * Server Side Rendering
      */
     const [sse, error] = useSSE(async () => {
-      const stencilRenderToStringPromise = useContext(InternalContext).renderToString;
       // stop, if we are in a browser
-      if (!isServer || !stencilRenderToStringPromise) return true;
+      if (!isServer) return true;
+
+      const stencilRenderToStringPromise = useContext(InternalContext).renderToString;
+
+      // stop, if we have no render to string function
+      if (!stencilRenderToStringPromise) return true;
+
       const stencilRenderToString = await stencilRenderToStringPromise;
       const e = createElement(tagName, newProps, children)
+
       return stencilRenderToString(e)
     });
 
