@@ -138,7 +138,7 @@ import { createReactComponent } from './react-component-lib';\n`;
 
       // if (outputTarget.enableSSR) impVars.push(`${pascalImport} as ${pascalImport}Cmp`)
 
-      cmpImports.push(`import { ${impVars.join(', ')} } from '${componentsDir}/${component.tagName}.js';`);
+      cmpImports.push(`import { ${impVars.join(', ')} } from '${componentsDir}/${component.tagName}';`);
 
       if (outputTarget.individualComponentDefineCustomElement) {
         cmpDefineCustomElmts.push(`${defineCustomElementName}()\n`)
